@@ -1,20 +1,18 @@
 # async-rate-limiter
 
-A **RateLimiter** with serialized, sliding-window-like execution 
+This library provides a **RateLimiter** with serialized, strict sliding-window execution guarantees.
 
 ## Overview
 
-This library provides:
-A **RateLimiter** with serialized, sliding-window-like execution guarantees.
-It is intentionally conservative and explicit, making it suitable for protecting external systems (APIs, databases, hardware) where contract violation and ambiguity are unacceptable.
+**async-rate-limiter** is a strict, completion-based **asyncio rate limiter**
+with serialized execution and sliding-window guarantees.
 
-## Why this library exists
+It is designed for correctness, determinism, and safety rather than raw
+throughput. The limiter executes tasks sequentially and guarantees that no
+more than a fixed number of task completions occur within a given time window,
+making it suitable for protecting external APIs, databases, and other
+fragile systems.
 
-Most RateLimiting utilities:
-- rely on best-effort timing
-- do not clearly specify stop or overrun behavior
-- provide the rate guarentees as an average rather than a mathematical guarentee
-- function as a leacky bucket rather than a strict sliding window, sliding window id more appropriare where sticking to guarentees is crucial 
 
 **async-rate-limiter** takes a different approach:
 
@@ -25,28 +23,27 @@ Most RateLimiting utilities:
 ## Installation
 
 ```bash
-pip install py-asyncio-utils
+pip install async_rate_limiter
 ```
 
-### What it does
+### What this asyncio rate limiter does
 
-Enforces a maximum number of executions (a rate) per time window. Tasks pushed to the limiter are executed as bandwidth becomes available. Tasks may be synchronous functions or async coroutines. Internally uses a small ring buffer of recent execution timestamps and a pending queue. When the buffer is full, execution is deferred until the earliest timestamp ages out by `per`.
+Enforces a maximum number of task completions per time window. Tasks pushed to the limiter are executed as bandwidth becomes available. Tasks may be synchronous functions or async coroutines. Internally uses a small ring buffer of recent task completion timestamps and a pending queue. When the buffer is full, execution is deferred until the earliest timestamp ages out by `per`.
 
 
 ### Guarantees
 
 - Serialized execution (no concurrent callbacks)
 - Completion-based rate limiting
-- No more than `rate` task completions occur in any `per` interval(for example a 'rate' 1000 task 'per' 2 seconds )
-- No bursts
+- No more than `rate` task completions occur in any `per` interval(e.g. at most 1000 completions per 2 seconds)
 - FIFO ordering
 
 
 ### API
 
-- `RateLimiter(rate: int, per_ns: int)` — allow `rate` executions per `per` interval.
-    - **rate**      : Rate(or the max no.. of tasks) allowd to execure in 'per' nano seconds
-    - **per_ns**    : Unit time interval in which at max 'rate' are allowed to execute
+- `RateLimiter(rate: int, per_ns: int)` — allow `rate` task completions per `per` interval.
+    - **rate**      : Maximum number of task completions allowed per interval
+    - **per_ns**    : Unit time interval in nano seconds in which at max 'rate' are allowed to complete
 - `await push(task: Callable) -> bool` — execute the task, if bandwidth permits, else queue it for future execution
     - **task**: `Callable[[], None | Awaitable[None]]`
         - May be a synchronous function or an async coroutine
@@ -57,20 +54,20 @@ Enforces a maximum number of executions (a rate) per time window. Tasks pushed t
 
 ```python
 import asyncio
-from async-rate-limiter import RateLimiter
+from async_rate_limiter import RateLimiter
 
 async def work():
     print('did work')
 
 async def main():
-    rate_limiter = RateLimiter(10, timedelta(seconds=1))
+    rate_limiter = RateLimiter(10, 1000_000_000)
     for _ in range(50):
         await rate_limiter.push(work)
 
 asyncio.run(main())
 ```
 
-### Important Semantic Note
+### Important semantic note: completion-based rate limiting
 
 This is **not** a token-bucket or admission-based limiter.
 
@@ -78,6 +75,7 @@ The RateLimiter enforces:
 
 > At most `rate` task *completions* per `per` interval, with serialized execution.
 
+This guarantee holds regardless of task duration or scheduling delays.
 This means:
 - Tasks are awaited
 - Long-running tasks reduce throughput
@@ -103,11 +101,11 @@ If you need those semantics, consider **aiolimiter**.
 
 ---
 
-## Comparison with Other Libraries
+## Comparison with other Python asyncio rate limiters
 
 | Library | Model | Bursts | Concurrency |
 |---------|-------|--------|-------------|
-| py_asyncio_utils | Serialized, completion-based | No | No |
+| async-rate-limiter | Serialized, completion-based | No | No |
 | aiolimiter | Token bucket | Yes | Yes |
 
 ## Design Philosophy
@@ -118,7 +116,7 @@ If you need those semantics, consider **aiolimiter**.
 
 ---
 
-## When to Use This Library
+## When to use this asyncio rate limiter
 
 **Use async-rate-limiter if:**
 - You care about correctness and predictability

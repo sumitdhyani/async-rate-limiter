@@ -7,7 +7,7 @@ import unittest
 sys.path.insert(
     0,
     os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../src/async-rate-limiter")
+        os.path.join(os.path.dirname(__file__), "../src/async_rate_limiter")
     ),
 )
 from RateLimiter import RateLimiter
