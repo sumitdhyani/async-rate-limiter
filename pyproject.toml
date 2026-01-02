@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "async-rate-limiter"
+version = "0.1.0"
+description = "A RateLimiter with sliding-window guarentees"
+requires-python = ">=3.12"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # Error, Pyflakes, and Isort rules
+ignore = ["E501"]
