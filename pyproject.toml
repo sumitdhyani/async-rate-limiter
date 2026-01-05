@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "async-rate-limiter"
+name = "async-serialized-rate-limiter"
 version = "0.1.0"
 description = "A strict asyncio rate limiter with serialized execution and sliding-window guarantees"
 readme = "README.md"
