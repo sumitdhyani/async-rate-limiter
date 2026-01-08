@@ -3,7 +3,7 @@ import time
 from collections import deque
 from collections.abc import Awaitable, Callable
 
-from .Reuseables import RingBuffer
+from Reuseables import RingBuffer
 
 
 def ns_to_seconds(ns: int) -> float:

@@ -47,6 +47,8 @@ Callback = Callable[[], None | Awaitable[None]]
     Implements a rate limiter that allows a certain weight to be consumed.
     Unlike the plain RateLimiter which counts tasks, this counts weights.
     Each task has an associated weight, and the rate limiter ensures that
+    within the specified time(a sliding time-window), the total weight consumed
+    is <= the specified weight
 """
 
 
