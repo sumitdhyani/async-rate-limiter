@@ -16,7 +16,13 @@ from WeightedRateLimiter import WeightedRateLimiter
 # This example demonstrates how to use the WeightedRateLimiter to limit the tasks based on total weight.
 # While pushing a task to the WeightedRateLimiter, an estimated cost has to be specified for the Limiter
 # to able able to impose the weight limit
-# In this example, we create a RateLimiter that allows a maximum weight of of 100 per second.
+# In this example, we create a RateLimiter that allows a maximum weight of of 5 per second.
+# 5 tasks are pushed with weights 1,2,3,4,5 respectively
+# Each tasks prints the time at which it is executed
+# The output shows that in an 1 second window, the the total weight is <= 5
+# This semantics is being strictly applied
+# For example if in a 1 sec window a task of weight 2 can be accomodated, but the next task
+# is of weight 3, it will not be executed immediately, it will be queued for later
 
 
 # interval_ns should be the unit interval in nano seconds
